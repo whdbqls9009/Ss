@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .price-display { font-size: 2.5rem; font-weight: bold; margin: 20px 0; transition: color 0.2s; }
+        .status { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 0.9rem; }
+        .controls button { width: 45%; padding: 15px; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; color: white; transition: opacity 0.2s; }
+        .buy { background-color: #e74c3c; } /* 매수는 빨간색 */
+        .sell { background-color: #3498db; } /* 매도는 파란색 */
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .log { margin-top: 20px; font-size: 0.8rem; color: #666; height: 60px; overflow-y: hidden; }
+        .up { color: #e74c3c; }
+        .down { color: #3498db; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📈 개미의 꿈</h2>
+    <div class="status">
+        <div>내 현금: <br><strong id="cash">1,000,000</strong>원</div>
+        <div>보유 주식: <br><strong id="stock-count">0</strong>주</div>
+    </div>
+
+    <div class="price-display" id="current-price">10,000원</div>
+    
+    <div class="controls">
+        <button class="buy" onclick="buyStock()">매수</button>
+        <button class="sell" onclick="sellStock()">매도</button>
+    </div>
+
+    <div class="log" id="game-log">게임을 시작합니다! 시장을 주시하세요.</div>
+</div>
+
+<script>
+    let cash = 1000000;
+    let stockCount = 0;
+    let currentPrice = 10000;
+    let lastPrice = 10000;
+
+    const priceEl = document.getElementById('current-price');
+    const cashEl = document.getElementById('cash');
+    const stockEl = document.getElementById('stock-count');
+    const logEl = document.getElementById('game-log');
+
+    // 가격 변동 로직
+    function updatePrice() {
+        lastPrice = currentPrice;
+        // -10% ~ +10.5% 사이로 랜덤 변동 (약간 우상향 확률)
+        const changePercent = (Math.random() * 0.21 - 0.1).toFixed(4);
+        currentPrice = Math.floor(currentPrice * (1 + parseFloat(changePercent)));
+        
+        // 최소 가격 보장
+        if (currentPrice < 500) currentPrice = 500;
+
+        // UI 업데이트
+        priceEl.innerText = currentPrice.toLocaleString() + "원";
+        if (currentPrice > lastPrice) {
+            priceEl.className = "price-display up";
+        } else {
+            priceEl.className = "price-display down";
+        }
+    }
+
+    function buyStock() {
+        if (cash >= currentPrice) {
+            cash -= currentPrice;
+            stockCount++;
+            updateUI();
+            addLog(`✅ ${currentPrice.toLocaleString()}원에 1주 매수 완료.`);
+        } else {
+            addLog("❌ 잔액이 부족합니다!");
+        }
+    }
+
+    function sellStock() {
+        if (stockCount > 0) {
+            cash += currentPrice;
+            stockCount--;
+            updateUI();
+            addLog(`💰 ${currentPrice.toLocaleString()}원에 1주 매도 완료.`);
+        } else {
+            addLog("❌ 팔 주식이 없습니다!");
+        }
+    }
+
+    function updateUI() {
+        cashEl.innerText = cash.toLocaleString();
+        stockEl.innerText = stockCount.toLocaleString();
+    }
+
+    function addLog(msg) {
+        logEl.innerHTML = msg + "<br>" + logEl.innerHTML;
+    }
+
+    // 1.5초마다 가격 갱신
+    setInterval(updatePrice, 1500);
+</script>
+
+</body>
+</html>
